@@ -1,0 +1,26 @@
+.calendar {
+	background-color: #fff;
+	width: 252px;
+	height: 44px;
+	border-radius: 6px;
+	padding: 10px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	box-sizing: border-box;
+
+	p {
+		font-weight: 500;
+		font-size: 18px;
+		line-height: 100%;
+	}
+}
+
+.select {
+	position: absolute;
+	width: 860px;
+	height: 415px;
+	border-radius: 8px;
+	box-shadow: 0px 0px 20px 10px rgba(0, 0, 0, 0.05);
+	background-color: #fff;
+}
