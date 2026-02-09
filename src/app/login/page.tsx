@@ -12,7 +12,7 @@ export default function LoginPage() {
 	const [password, setPassword] = useState('')
 	const [error, setError] = useState('')
 
-	const handleSubmit = e => {
+	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 
 		if (!userName.trim() || !password.trim()) {
@@ -33,12 +33,12 @@ export default function LoginPage() {
 		}
 	}
 
-	const handleEmailChange = e => {
+	const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setUserName(e.target.value)
 		if (error) setError('')
 	}
 
-	const handlePasswordChange = e => {
+	const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setPassword(e.target.value)
 		if (error) setError('')
 	}
