@@ -1,3 +1,4 @@
+import 'react-day-picker/dist/style.css'
 import '../globals.scss'
 import { Providers } from '../providers'
 import { Montserrat } from 'next/font/google'

@@ -1,13 +1,25 @@
 'use client'
-import React, { useState } from 'react'
+
+import { DayPicker, DateRange } from 'react-day-picker'
+import { ru } from 'date-fns/locale'
+import { useState } from 'react'
 import styles from './calendar.module.scss'
 
 export default function Calendar() {
 	const [isOpen, setIsOpen] = useState(false)
+	const [range, setRange] = useState<DateRange | undefined>()
+
 	return (
 		<>
 			<div className={styles.calendar}>
-				<p>17.09.2026 - 17.10.2026</p>
+				<p>
+					{range?.from
+						? `${range.from.toLocaleDateString('ru-RU')} - ${
+								range.to ? range.to.toLocaleDateString('ru-RU') : '...'
+						  }`
+						: 'Выберите период'}
+				</p>
+
 				<svg
 					onClick={() => setIsOpen(!isOpen)}
 					width='21'
@@ -23,7 +35,27 @@ export default function Calendar() {
 				</svg>
 			</div>
 
-			{isOpen && <div className={styles.select}></div>}
+			{isOpen && (
+				<div className={styles.select}>
+					<DayPicker
+						locale={ru}
+						mode='range'
+						selected={range}
+						onSelect={setRange}
+						numberOfMonths={2}
+						pagedNavigation
+						classNames={{
+							day: 'calendar-day',
+							caption_label: 'caption-label',
+							month_caption: 'month_caption',
+							weekdays: 'weekdays',
+							weekday: 'weekday',
+							months: 'months',
+							weeks: 'weeks',
+						}}
+					/>
+				</div>
+			)}
 		</>
 	)
 }

@@ -8,28 +8,22 @@ import styles from './style.module.scss'
 export default function LoginPage() {
 	const login = useAuthStore(s => s.login)
 	const router = useRouter()
-	const [email, setEmail] = useState('')
+	const [userName, setUserName] = useState('')
 	const [password, setPassword] = useState('')
 	const [error, setError] = useState('')
 
 	const handleSubmit = e => {
 		e.preventDefault()
 
-		if (!email.trim() || !password.trim()) {
+		if (!userName.trim() || !password.trim()) {
 			setError('Все поля обязательны для заполнения')
 			return
 		}
 
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-		if (!emailRegex.test(email)) {
-			setError('Введите корректный email')
-			return
-		}
-
-		const correctEmail = '12342@gmail.com'
+		const correctUserName = 'qwe'
 		const correctPassword = '123'
 
-		if (email === correctEmail && password === correctPassword) {
+		if (userName === correctUserName && password === correctPassword) {
 			document.cookie = 'auth=true'
 			login()
 			router.push('/messages')
@@ -40,7 +34,7 @@ export default function LoginPage() {
 	}
 
 	const handleEmailChange = e => {
-		setEmail(e.target.value)
+		setUserName(e.target.value)
 		if (error) setError('')
 	}
 
@@ -56,8 +50,8 @@ export default function LoginPage() {
 			<label className={styles.field}>
 				<input
 					type='text'
-					placeholder='Email'
-					value={email}
+					placeholder='User name'
+					value={userName}
 					onChange={handleEmailChange}
 				/>
 				<svg
@@ -100,7 +94,9 @@ export default function LoginPage() {
 			{error && <p className={styles.error}>{error}</p>}
 
 			<button
-				className={`${styles.button} ${email && password ? styles.filled : ''}`}
+				className={`${styles.button} ${
+					userName && password ? styles.filled : ''
+				}`}
 				type='submit'
 			>
 				Войти

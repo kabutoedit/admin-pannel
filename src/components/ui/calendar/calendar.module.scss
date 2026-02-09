@@ -8,6 +8,7 @@
 	justify-content: space-between;
 	align-items: center;
 	box-sizing: border-box;
+	margin-bottom: 15px;
 
 	p {
 		font-weight: 500;
@@ -19,8 +20,76 @@
 .select {
 	position: absolute;
 	width: 860px;
-	height: 415px;
+	// height: 415px;
 	border-radius: 8px;
 	box-shadow: 0px 0px 20px 10px rgba(0, 0, 0, 0.05);
 	background-color: #fff;
+	padding: 36px 56px 40px 56px;
+	box-sizing: border-box;
+
+	:global(.rdp-root) {
+		--rdp-accent-color: #000;
+		--rdp-accent-background-color: #000;
+		--rdp-range_middle-background-color: #e5e5e5;
+
+		--rdp-day-height: 40px;
+		--rdp-day-width: 40px;
+		--rdp-day-radius: 8px;
+
+		--rdp-day_button-width: 48px;
+		--rdp-day_button-height: 48px;
+
+		font-family: inherit;
+	}
+
+	:global(.calendar-day) {
+		width: 48px !important;
+		height: 48px !important;
+		max-width: 48px;
+		max-height: 48px;
+		font-weight: 400;
+		font-size: 16px;
+		line-height: 100%;
+		text-align: center;
+	}
+
+	:global(.month_caption) {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-bottom: 16px;
+	}
+
+	:global(.caption-label) {
+		text-transform: capitalize;
+		font-weight: 400;
+		font-size: 16px;
+		line-height: 100%;
+		text-align: center;
+	}
+
+	:global(.weeks) {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+	}
+
+	:global(.weekdays) {
+		display: block;
+		color: rgba(133, 133, 133, 1);
+		text-transform: uppercase;
+	}
+	:global(.weekday) {
+		width: 48px;
+		height: 48px;
+		font-weight: 400;
+		font-size: 16px;
+		line-height: 100%;
+		text-align: center;
+	}
+
+	:global(.months) {
+		display: flex;
+		justify-content: space-between;
+	}
 }
