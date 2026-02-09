@@ -5,6 +5,7 @@
 }
 
 .card {
+	overflow: hidden;
 	position: relative;
 	width: 695px;
 	height: 156px;
@@ -75,7 +76,13 @@
 }
 
 .more {
-	color: #3b82f6;
+	display: inline-block;
+	font-weight: 400;
+	font-size: 12px;
+	line-height: 20px;
+	color: rgba(45, 139, 255, 1);
+	margin-left: 5px;
+
 	cursor: pointer;
 }
 
@@ -103,6 +110,9 @@
 	top: 0;
 	left: 0;
 	background: rgba(118, 117, 117, 1);
+
+	border-top-left-radius: 50px;
+	border-bottom-left-radius: 50px;
 }
 
 .negative {
@@ -112,4 +122,13 @@
 	top: 0;
 	left: 0;
 	background: rgba(221, 23, 23, 1);
+
+	border-top-left-radius: 50px;
+	border-bottom-left-radius: 50px;
+}
+
+.emotion {
+	position: absolute;
+	top: 20px;
+	left: 648px;
 }
