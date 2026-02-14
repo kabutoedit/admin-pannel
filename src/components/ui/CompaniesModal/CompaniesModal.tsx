@@ -1,20 +1,46 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styles from './CompaniesModal.module.scss'
+import { api } from '@/src/lib/api'
+
+interface Company {
+	id: number
+	name: string
+	description: string
+}
 
 export default function companiesModal() {
 	const [isOpen, setIsOpen] = useState(false)
+	const [companies, setCompanies] = useState<Company[]>([])
+	const [loading, setLoading] = useState(false)
+	const [error, setError] = useState('')
 
-	const companies = [
-		{ id: 1, name: 'Аэрофлот', description: 'Соцмедиа и онлайн-СМИ' },
-		{ id: 2, name: 'Белая река', description: 'Соцмедиа и онлайн-СМИ' },
-		{ id: 3, name: 'Apple', description: 'Соцмедиа и онлайн-СМИ' },
-	]
+	useEffect(() => {
+		const fetchCompanies = async () => {
+			try {
+				setLoading(true)
+
+				const { data } = await api.get('/api/brands/my')
+
+				setCompanies(data)
+				console.log(data)
+			} catch (err) {
+				setError('Ошибка загрузки брендов')
+			} finally {
+				setLoading(false)
+			}
+		}
+
+		fetchCompanies()
+	}, [])
+
 	return (
 		<div className={styles.companiesModal}>
 			<div className={styles.currentCompany}>
 				<div className={styles.company}>
-					<h3>{companies[0].name}</h3>
-					<p>{companies[0].description}</p>
+					{loading && <p>Загрузка...</p>}
+					{error && <p>{error}</p>}
+					<h3>{companies[0]?.name}</h3>
+					<p>{companies[0]?.description}</p>
 				</div>
 				<svg
 					width='7'
@@ -39,16 +65,17 @@ export default function companiesModal() {
 					</defs>
 				</svg>
 			</div>
-			{isOpen && (
+			{isOpen && !loading && (
 				<div className={styles.companies}>
-					{companies.map(company => {
-						return (
-							<div key={company.id} className={styles.company}>
-								<h3>{company.name}</h3>
-								<p>{company.description}</p>
-							</div>
-						)
-					})}
+					{companies.length > 0 &&
+						companies.map(company => {
+							return (
+								<div key={company.id} className={styles.company}>
+									<h3>{company.name}</h3>
+									<p>{company.description}</p>
+								</div>
+							)
+						})}
 				</div>
 			)}
 		</div>

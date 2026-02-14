@@ -1,0 +1,98 @@
+.btn {
+	width: 105px;
+	height: 44px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 0;
+	border-radius: 6px;
+	background: rgba(221, 23, 23, 1);
+	border: 1px solid rgba(255, 255, 255, 1);
+	box-shadow: 2px 3px 4.7px 0px rgba(52, 84, 125, 0.03);
+	color: #fff;
+}
+
+.overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.4);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+}
+.deleteModal {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	z-index: 10;
+	transform: translate(-50%, -50%);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	box-sizing: border-box;
+	width: 652px;
+	height: 252px;
+	border-radius: 15px;
+	padding-top: 30px;
+	padding-right: 29px;
+	padding-bottom: 30px;
+	padding-left: 29px;
+	border: 1px solid rgba(217, 217, 217, 1);
+	background: rgba(255, 255, 255, 1);
+
+	h5 {
+		margin: 0;
+
+		font-weight: 700;
+		font-size: 32px;
+		line-height: 46px;
+		letter-spacing: 0.25px;
+		color: rgba(26, 26, 26, 1);
+	}
+	p {
+		margin: 0;
+
+		margin-top: 8px;
+		margin-bottom: 30px;
+		font-weight: 500;
+		font-size: 18px;
+		line-height: 28px;
+		letter-spacing: 0.15px;
+		text-align: center;
+		color: rgba(102, 102, 102, 1);
+	}
+
+	.btns {
+		display: flex;
+		align-items: center;
+		gap: 27px;
+
+		.cancel {
+			width: 200.5px;
+			height: 52px;
+			border-radius: 8px;
+			border: 1px solid rgba(34, 34, 34, 1);
+			background: rgba(255, 255, 255, 1);
+
+			font-weight: 600;
+			font-size: 16px;
+			line-height: 100%;
+			color: rgba(34, 34, 34, 1);
+		}
+
+		.delete {
+			width: 200.5px;
+			height: 48px;
+			border-radius: 8px;
+			border: none;
+			background: rgba(229, 57, 53, 1);
+
+			font-weight: 600;
+			font-size: 16px;
+			line-height: 100%;
+			color: rgba(255, 255, 255, 1);
+		}
+	}
+}

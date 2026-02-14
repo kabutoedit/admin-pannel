@@ -1,0 +1,27 @@
+.label {
+	position: relative;
+
+	.input {
+		width: 319px;
+		height: 44px;
+		opacity: 0.8;
+		border-radius: 6px;
+		background: rgba(255, 255, 255, 1);
+		border: 1px solid rgba(213, 214, 217, 0.6);
+		box-shadow: 2px 3px 4.7px 0px rgba(52, 84, 125, 0.03);
+		padding: 10px;
+		box-sizing: border-box;
+
+		::placeholder {
+			font-weight: 500;
+			font-size: 14px;
+			line-height: 100%;
+			color: rgba(131, 131, 131, 1);
+		}
+	}
+	.svg {
+		position: absolute;
+		right: 10px;
+		top: 0;
+	}
+}

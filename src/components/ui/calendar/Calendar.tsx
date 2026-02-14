@@ -5,23 +5,55 @@ import { ru } from 'date-fns/locale'
 import { useState } from 'react'
 import styles from './calendar.module.scss'
 
-export default function Calendar() {
+export type DateRangeOrSingle =
+	| {
+			from: Date
+			to?: Date
+	  }
+	| undefined
+
+type CalendarProps = {
+	selectedRange: DateRangeOrSingle
+	onChange: (range: DateRangeOrSingle) => void
+}
+
+export default function Calendar({ selectedRange, onChange }: CalendarProps) {
 	const [isOpen, setIsOpen] = useState(false)
-	const [range, setRange] = useState<DateRange | undefined>()
+
+	const addTwoMonths = (date: Date) => {
+		const newDate = new Date(date)
+		newDate.setMonth(newDate.getMonth() + 2)
+		return newDate
+	}
+
+	const handleSelect = (selected: DateRange | undefined) => {
+		if (!selected?.from) {
+			onChange(undefined)
+			return
+		}
+
+		if (selected.from && selected.to) {
+			const maxDate = addTwoMonths(selected.from)
+			if (selected.to > maxDate) return
+		}
+
+		const range: DateRangeOrSingle = { from: selected.from, to: selected.to }
+		onChange(range)
+	}
 
 	return (
-		<>
-			<div className={styles.calendar}>
+		<div className={styles.calendarWrapper}>
+			<div className={styles.calendar} onClick={() => setIsOpen(!isOpen)}>
 				<p>
-					{range?.from
-						? `${range.from.toLocaleDateString('ru-RU')} - ${
-								range.to ? range.to.toLocaleDateString('ru-RU') : '...'
+					{selectedRange?.from
+						? `${selectedRange.from.toLocaleDateString('ru-RU')} - ${
+								selectedRange.to
+									? selectedRange.to.toLocaleDateString('ru-RU')
+									: '...'
 						  }`
 						: 'Выберите период'}
 				</p>
-
 				<svg
-					onClick={() => setIsOpen(!isOpen)}
 					width='21'
 					height='23'
 					viewBox='0 0 21 23'
@@ -36,26 +68,17 @@ export default function Calendar() {
 			</div>
 
 			{isOpen && (
-				<div className={styles.select}>
+				<div className={styles.select} onClick={e => e.stopPropagation()}>
 					<DayPicker
 						locale={ru}
 						mode='range'
-						selected={range}
-						onSelect={setRange}
+						selected={selectedRange}
+						onSelect={handleSelect}
 						numberOfMonths={2}
 						pagedNavigation
-						classNames={{
-							day: 'calendar-day',
-							caption_label: 'caption-label',
-							month_caption: 'month_caption',
-							weekdays: 'weekdays',
-							weekday: 'weekday',
-							months: 'months',
-							weeks: 'weeks',
-						}}
 					/>
 				</div>
 			)}
-		</>
+		</div>
 	)
 }

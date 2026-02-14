@@ -8,7 +8,7 @@
 	overflow: hidden;
 	position: relative;
 	width: 695px;
-	height: 156px;
+	// height: 156px;
 	border-radius: 10px;
 	background: rgba(255, 255, 255, 1);
 	box-shadow: -5px 6px 8.5px 0px rgba(46, 67, 110, 0.05);
@@ -31,7 +31,7 @@
 }
 
 .header {
-	width: 210px;
+	// width: 210px;
 	height: 32px;
 	display: flex;
 
@@ -50,6 +50,11 @@
 	line-height: 100%;
 	margin: 0;
 	padding: 0;
+}
+
+.link {
+	color: #117bfd;
+	text-decoration: none;
 }
 
 .date {
@@ -81,9 +86,12 @@
 	font-size: 12px;
 	line-height: 20px;
 	color: rgba(45, 139, 255, 1);
-	margin-left: 5px;
 
 	cursor: pointer;
+
+	svg {
+		margin-left: 5px;
+	}
 }
 
 .status {
@@ -131,4 +139,29 @@
 	position: absolute;
 	top: 20px;
 	left: 648px;
+}
+.checkbox {
+	appearance: none;
+	width: 18px;
+	height: 18px;
+	border: 0.5px solid rgba(213, 214, 217, 1);
+	border-radius: 4px;
+	cursor: pointer;
+	position: relative;
+}
+
+.checkbox:checked {
+	border: 0.5px solid rgba(52, 199, 89, 1);
+}
+
+.checkbox:checked::after {
+	content: '';
+	position: absolute;
+	left: 5px;
+	top: 0px;
+	width: 5px;
+	height: 10px;
+	border: solid rgba(52, 199, 89, 1);
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
 }

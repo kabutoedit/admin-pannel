@@ -4,15 +4,17 @@ import { useRouter } from 'next/navigation'
 import { useAuthStore } from '../../store/auth.store'
 import { useState } from 'react'
 import styles from './style.module.scss'
+import { api } from '@/src/lib/api'
 
 export default function LoginPage() {
 	const login = useAuthStore(s => s.login)
+	const logout = useAuthStore(s => s.logout)
 	const router = useRouter()
 	const [userName, setUserName] = useState('')
 	const [password, setPassword] = useState('')
 	const [error, setError] = useState('')
 
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault()
 
 		if (!userName.trim() || !password.trim()) {
@@ -20,16 +22,25 @@ export default function LoginPage() {
 			return
 		}
 
-		const correctUserName = 'qwe'
-		const correctPassword = '123'
+		try {
+			const { data } = await api.post('/api/auth/token/', {
+				username: userName,
+				password: password,
+			})
 
-		if (userName === correctUserName && password === correctPassword) {
-			document.cookie = 'auth=true'
+			localStorage.setItem('access', data.access)
+			localStorage.setItem('refresh', data.refresh)
+
 			login()
+			document.cookie = `auth=${data.access}; path=/`
 			router.push('/messages')
 			setError('')
-		} else {
-			setError('Неправильный email или пароль')
+		} catch (error: any) {
+			if (error.response?.status === 401) {
+				setError('Неверный логин или пароль')
+			} else {
+				setError('Ошибка сервера')
+			}
 		}
 	}
 
