@@ -66,7 +66,7 @@ export default function NavBar() {
 					</svg>
 					Тональность
 				</Link>
-				<Link href={''}>
+				<Link href={'imageDetector'}>
 					<svg
 						width='24'
 						height='24'

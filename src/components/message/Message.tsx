@@ -50,6 +50,7 @@ type MessageProps = {
 	selectedRange: DateRangeOrSingle
 	brandId?: number
 	itemsPerPage?: number
+	onDataLoaded?: (messages: MessageType[]) => void
 }
 
 export function Message({
@@ -60,6 +61,7 @@ export function Message({
 	selectedRange,
 	brandId = 1,
 	itemsPerPage = 30,
+	onDataLoaded,
 }: MessageProps) {
 	const { selectedIds, toggle } = useMessagesStore()
 	const [messages, setMessages] = useState<MessageType[]>([])
@@ -106,6 +108,11 @@ export function Message({
 
 				const { data } = await api.get('/api/messages', { params })
 				setMessages(data.items || [])
+				const items = data.items || []
+				setMessages(items)
+				if (onDataLoaded) {
+					onDataLoaded(items)
+				}
 				setCurrentPage(1)
 			} catch (err) {
 				setError('Ошибка загрузки сообщений')
