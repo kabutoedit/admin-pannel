@@ -1,0 +1,44 @@
+.modalContent {
+	position: absolute;
+	top: 85px;
+	right: 0;
+	background: linear-gradient(90.24deg, #273242 51.48%, #344258 100%);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	padding: 20px;
+	border-radius: 12px;
+	text-align: center;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+	width: max-content;
+	min-width: 200px;
+	z-index: 1000;
+
+	p {
+		color: #fff;
+		font-size: 14px;
+		margin-bottom: 15px;
+		font-weight: 500;
+		white-space: nowrap;
+	}
+
+	button {
+		background: #2d8bff;
+		color: #fff;
+		border: none;
+		padding: 8px 20px;
+		border-radius: 6px;
+		cursor: pointer;
+		font-weight: 600;
+		width: 100%;
+
+		&:hover {
+			opacity: 0.9;
+		}
+	}
+}
+
+.modalOverlay {
+	position: fixed;
+	inset: 0;
+	z-index: 999;
+	background: transparent;
+}

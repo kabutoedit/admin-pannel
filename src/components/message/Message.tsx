@@ -15,6 +15,7 @@ import {
 	NeutralSVG,
 	NegativeSVG,
 } from '../../../public/icons'
+import DetailsModal from '../ui/detailsModal/DetailsModal'
 
 type MessageType = {
 	audience?: number
@@ -63,6 +64,11 @@ export function Message({
 	const [expandedIds, setExpandedIds] = useState<string[]>([])
 	const [sortBy, setSortBy] = useState<string>('date')
 	const [currentPage, setCurrentPage] = useState(1)
+	const [selectedMessage, setSelectedMessage] = useState<MessageType | null>(
+		null
+	)
+
+	const closeModal = () => setSelectedMessage(null)
 
 	const TEXT_LIMIT = 120
 
@@ -163,7 +169,6 @@ export function Message({
 			return matchesSearch && matchesDate
 		})
 
-		// сортировка
 		const copy = [...filtered]
 		switch (sortBy) {
 			case 'date':
@@ -212,6 +217,18 @@ export function Message({
 			)
 		)
 	}
+
+	useEffect(() => {
+		if (selectedMessage) {
+			document.body.style.overflow = 'hidden'
+		} else {
+			document.body.style.overflow = 'unset'
+		}
+
+		return () => {
+			document.body.style.overflow = 'unset'
+		}
+	}, [selectedMessage])
 
 	return (
 		<>
@@ -275,19 +292,18 @@ export function Message({
 								</div>
 
 								<p className={styles.text}>
-									{isExpanded
-										? highlightText(text, search)
-										: highlightText(
-												text.slice(0, TEXT_LIMIT) +
-													(text.length > TEXT_LIMIT ? '...' : ''),
-												search
-										  )}
+									{highlightText(
+										text.slice(0, TEXT_LIMIT) +
+											(text.length > TEXT_LIMIT ? '...' : ''),
+										search
+									)}
+
 									{text.length > TEXT_LIMIT && (
 										<span
 											className={styles.more}
-											onClick={() => toggleExpanded(msg.external_id)}
+											onClick={() => setSelectedMessage(msg)}
 										>
-											{isExpanded ? 'Свернуть' : 'Показать полный текст'}
+											Показать полный текст
 										</span>
 									)}
 								</p>
@@ -343,6 +359,13 @@ export function Message({
 					{'>'}
 				</button>
 			</div>
+
+			<DetailsModal
+				selectedMessage={selectedMessage}
+				closeModal={closeModal}
+				search={search}
+				highlightText={highlightText}
+			/>
 		</>
 	)
 }

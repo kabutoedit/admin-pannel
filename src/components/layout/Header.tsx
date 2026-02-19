@@ -1,7 +1,13 @@
 'use client'
+import { useState } from 'react'
 import styles from './Header.module.scss'
+import ProfileNavBar from '../ui/profileNavBar/ProfileNavBar'
 
 export default function Header() {
+	const [isModalOpen, setIsModalOpen] = useState(false)
+
+	const toggleModal = () => setIsModalOpen(!isModalOpen)
+
 	return (
 		<header className={styles.header}>
 			<div className={styles.logo}>
@@ -26,13 +32,16 @@ export default function Header() {
 					/>
 				</svg>
 			</div>
-			<div className={styles.profile}>
+
+			<div className={styles.profile} onClick={toggleModal}>
 				<img
 					src='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png'
 					alt='profilePicture'
 				/>
 				<h3 className={styles.name}>Анастасия</h3>
 			</div>
+
+			{isModalOpen && <ProfileNavBar toggleModal={toggleModal} />}
 		</header>
 	)
 }

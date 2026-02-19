@@ -1,0 +1,86 @@
+.modalOverlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000;
+}
+
+.modalContent {
+	background: white;
+	width: 90%;
+	max-width: 800px;
+	max-height: 90vh;
+	padding: 30px;
+	border-radius: 8px;
+	position: relative;
+	overflow-y: auto;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.modalHeader {
+	display: flex;
+	justify-content: space-between;
+	font-size: 14px;
+	color: #666;
+	margin-bottom: 15px;
+
+	.authorName {
+		color: #2d8bff;
+		text-decoration: none;
+		margin: 0 10px;
+	}
+	.sourceName {
+		font-weight: bold;
+		color: #333;
+		margin-right: 10px;
+	}
+}
+
+.modalBody {
+	margin: 20px 0;
+	line-height: 1.6;
+	font-size: 16px;
+}
+
+.modalFooter {
+	border-top: 1px solid #eee;
+	padding-top: 15px;
+	font-size: 14px;
+	color: #888;
+
+	a {
+		color: #2d8bff;
+		word-break: break-all;
+	}
+}
+
+.closeBtn {
+	position: absolute;
+	top: 10px;
+	right: 10px;
+	font-size: 24px;
+	background: none;
+	border: none;
+	cursor: pointer;
+}
+
+.audienceCount {
+	display: inline-flex;
+	gap: 5px;
+}
+
+.sourceInfo {
+	display: flex;
+	align-items: center;
+}
+
+.span {
+	font-weight: bold;
+	color: #333;
+}
