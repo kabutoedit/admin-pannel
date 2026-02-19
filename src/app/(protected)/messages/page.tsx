@@ -19,15 +19,23 @@ export default function Home() {
 	const [search, setSearch] = useState('')
 	const [selectedRange, setSelectedRange] = useState<DateRangeOrSingle>()
 
+	const [refreshTrigger, setRefreshTrigger] = useState(0)
+
+	const handleRefresh = () => setRefreshTrigger(prev => prev + 1)
+
 	return (
 		<div className={styles.messagesPage}>
 			<div className={styles.left}>
 				<div className={styles.upside}>
 					<Calendar selectedRange={selectedRange} onChange={setSelectedRange} />
-					{isShow && <DeleteBtn />}
+					{isShow && <DeleteBtn onSuccess={handleRefresh} />}
 				</div>
 
-				<Message search={search} selectedRange={selectedRange} />
+				<Message
+					search={search}
+					selectedRange={selectedRange}
+					refreshTrigger={refreshTrigger}
+				/>
 			</div>
 
 			<Filters search={search} setSearch={setSearch} />

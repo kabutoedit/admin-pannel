@@ -1,0 +1,16 @@
+.btns {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 10px;
+
+	.btn {
+		height: 20px;
+		border: none;
+		background-color: #f4f4f4;
+	}
+
+	.active {
+		border-radius: 20px;
+		background-color: #e3e0e0;
+	}
+}

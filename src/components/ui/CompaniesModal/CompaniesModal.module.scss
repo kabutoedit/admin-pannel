@@ -32,7 +32,6 @@
 	.companies {
 		position: absolute;
 		width: 309px;
-		height: 316px;
 		left: 305px;
 		top: 0px;
 		z-index: 5;
@@ -56,16 +55,27 @@
 		}
 
 		.company {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
 			box-sizing: border-box;
 			width: 309px;
-			height: 65px;
+			min-height: 65px;
 			background: transparent;
 			color: #fff;
 			padding: 10px 0 10px 20px;
+			cursor: pointer;
+
+			&:hover {
+				width: 100%;
+				background: #ffffff;
+				color: #273242;
+			}
 
 			h3 {
 				margin: 0;
 				margin-bottom: 4px;
+				cursor: pointer;
 			}
 
 			p {

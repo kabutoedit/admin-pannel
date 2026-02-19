@@ -2,17 +2,36 @@
 
 import styles from './Message.module.scss'
 import { useMessagesStore } from '../../store/useMessages.store'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { api } from '@/src/lib/api'
+import BaseFilters from '../ui/baseFilters/BaseFilters'
+import {
+	AudienceIcon,
+	RepostIcon,
+	LikeIcon,
+	EyeIcon,
+	CommentIcon,
+	PositiveSVG,
+	NeutralSVG,
+	NegativeSVG,
+} from '../../../public/icons'
 
-export type MessageType = {
+type MessageType = {
+	audience?: number
 	published_at?: string | null
 	source?: string | null
 	author?: string | null
+	author_url?: string
+	engagement?: number
 	text?: string | null
 	url?: string | null
 	tone?: 'позитив' | 'нейтрально' | 'негатив' | null
 	external_id: string
+	reposts?: number
+	likes?: number
+	comments?: number
+	views?: number
+	message_type?: string
 }
 
 type DateRangeOrSingle =
@@ -24,6 +43,7 @@ type DateRangeOrSingle =
 
 type MessageProps = {
 	search: string
+	refreshTrigger: number
 	selectedRange: DateRangeOrSingle
 	brandId?: number
 	itemsPerPage?: number
@@ -31,15 +51,18 @@ type MessageProps = {
 
 export function Message({
 	search,
+	refreshTrigger,
 	selectedRange,
 	brandId = 1,
-	itemsPerPage = 2,
+	itemsPerPage = 30,
 }: MessageProps) {
 	const { selectedIds, toggle } = useMessagesStore()
 	const [messages, setMessages] = useState<MessageType[]>([])
 	const [loading, setLoading] = useState(false)
 	const [error, setError] = useState('')
 	const [expandedIds, setExpandedIds] = useState<string[]>([])
+	const [sortBy, setSortBy] = useState<string>('date')
+	const [currentPage, setCurrentPage] = useState(1)
 
 	const TEXT_LIMIT = 120
 
@@ -53,10 +76,30 @@ export function Message({
 		const fetchMessages = async () => {
 			try {
 				setLoading(true)
-				const { data } = await api.get('/api/messages', {
-					params: { brand_id: brandId },
-				})
-				setMessages(data.items)
+				setError('')
+
+				const params: any = { brand_id: brandId }
+				if (search.trim()) params.search = search
+				if (selectedRange?.from) {
+					const from = selectedRange.from.toISOString()
+					const to = selectedRange.to
+						? selectedRange.to.toISOString()
+						: new Date(
+								selectedRange.from.getFullYear(),
+								selectedRange.from.getMonth(),
+								selectedRange.from.getDate(),
+								23,
+								59,
+								59,
+								999
+						  ).toISOString()
+					params.date_from = from
+					params.date_to = to
+				}
+
+				const { data } = await api.get('/api/messages', { params })
+				setMessages(data.items || [])
+				setCurrentPage(1)
 			} catch (err) {
 				setError('Ошибка загрузки сообщений')
 			} finally {
@@ -65,88 +108,132 @@ export function Message({
 		}
 
 		fetchMessages()
-	}, [brandId])
+	}, [
+		brandId,
+		refreshTrigger,
+		search,
+		selectedRange?.from?.toISOString(),
+		selectedRange?.to?.toISOString(),
+	])
 
-	const filteredMessages = messages.filter(msg => {
-		const matchesSearch = search
-			? msg.text?.toLowerCase().includes(search.toLowerCase()) ||
-			  msg.author?.toLowerCase().includes(search.toLowerCase()) ||
-			  msg.source?.toLowerCase().includes(search.toLowerCase())
-			: true
-
-		const matchesDate =
-			selectedRange?.from && msg.published_at
-				? (() => {
-						const messageDate = new Date(msg.published_at)
-
-						const start = new Date(
-							selectedRange.from.getFullYear(),
-							selectedRange.from.getMonth(),
-							selectedRange.from.getDate(),
-							0,
-							0,
-							0,
-							0
-						)
-
-						const end = selectedRange.to
-							? new Date(
-									selectedRange.to.getFullYear(),
-									selectedRange.to.getMonth(),
-									selectedRange.to.getDate(),
-									23,
-									59,
-									59,
-									999
-							  )
-							: new Date(
-									selectedRange.from.getFullYear(),
-									selectedRange.from.getMonth(),
-									selectedRange.from.getDate(),
-									23,
-									59,
-									59,
-									999
-							  )
-
-						return messageDate >= start && messageDate <= end
-				  })()
+	const processedMessages = useMemo(() => {
+		const filtered = messages.filter(msg => {
+			const matchesSearch = search
+				? msg.text?.toLowerCase().includes(search.toLowerCase()) ||
+				  msg.author?.toLowerCase().includes(search.toLowerCase()) ||
+				  msg.source?.toLowerCase().includes(search.toLowerCase())
 				: true
 
-		return matchesSearch && matchesDate
-	})
+			const matchesDate =
+				selectedRange?.from && msg.published_at
+					? (() => {
+							const msgDate = new Date(msg.published_at).getTime()
+							const start = new Date(
+								selectedRange.from.getFullYear(),
+								selectedRange.from.getMonth(),
+								selectedRange.from.getDate(),
+								0,
+								0,
+								0,
+								0
+							).getTime()
+							const end = selectedRange.to
+								? new Date(
+										selectedRange.to.getFullYear(),
+										selectedRange.to.getMonth(),
+										selectedRange.to.getDate(),
+										23,
+										59,
+										59,
+										999
+								  ).getTime()
+								: new Date(
+										selectedRange.from.getFullYear(),
+										selectedRange.from.getMonth(),
+										selectedRange.from.getDate(),
+										23,
+										59,
+										59,
+										999
+								  ).getTime()
+							return msgDate >= start && msgDate <= end
+					  })()
+					: true
 
-	const [currentPage, setCurrentPage] = useState(1)
-	const totalPages = Math.ceil(filteredMessages.length / itemsPerPage)
+			return matchesSearch && matchesDate
+		})
+
+		// сортировка
+		const copy = [...filtered]
+		switch (sortBy) {
+			case 'date':
+				return copy.sort((a, b) => {
+					if (!a.published_at && !b.published_at) return 0
+					if (!a.published_at) return 1
+					if (!b.published_at) return -1
+					return (
+						new Date(b.published_at).getTime() -
+						new Date(a.published_at).getTime()
+					)
+				})
+			case 'likes':
+				return copy.sort((a, b) => (b.likes || 0) - (a.likes || 0))
+			case 'views':
+				return copy.sort((a, b) => (b.views || 0) - (a.views || 0))
+			case 'comments':
+				return copy.sort((a, b) => (b.comments || 0) - (a.comments || 0))
+			case 'engagement':
+				return copy.sort((a, b) => (b.engagement || 0) - (a.engagement || 0))
+			default:
+				return copy
+		}
+	}, [messages, search, selectedRange, sortBy])
+
+	const totalPages = Math.ceil(processedMessages.length / itemsPerPage)
 	const startIndex = (currentPage - 1) * itemsPerPage
-	const currentItems = filteredMessages.slice(
+	const currentItems = processedMessages.slice(
 		startIndex,
 		startIndex + itemsPerPage
 	)
 
-	useEffect(() => {
-		setCurrentPage(1)
-	}, [search, selectedRange])
+	useEffect(() => setCurrentPage(1), [search, selectedRange, sortBy])
+
+	const highlightText = (text: string, search: string) => {
+		if (!search.trim()) return text
+		const regex = new RegExp(`(${search})`, 'gi')
+		const parts = text.split(regex)
+		return parts.map((part, i) =>
+			part.toLowerCase() === search.toLowerCase() ? (
+				<span key={i} className={styles.highlight}>
+					{part}
+				</span>
+			) : (
+				part
+			)
+		)
+	}
 
 	return (
 		<>
-			{loading && <p>Загрузка...</p>}
 			{error && <p>{error}</p>}
+			<BaseFilters onChange={setSortBy} />
+
+			{loading && <p>Загрузка...</p>}
 
 			<div className={styles.list}>
-				{currentItems.map(message => {
-					const isChecked = selectedIds.includes(message.external_id)
-					const isExpanded = expandedIds.includes(message.external_id)
-					const text = message.text || ''
+				{currentItems.map(msg => {
+					const isChecked = selectedIds.includes(msg.external_id)
+					const isExpanded = expandedIds.includes(msg.external_id)
+					const text = msg.text || ''
 
 					return (
-						<div key={message.external_id} className={styles.card}>
+						<div key={msg.external_id} className={styles.card}>
 							<div className={styles.left}>
 								<input
 									type='checkbox'
 									className={styles.checkbox}
 									checked={isChecked}
-									onChange={() => toggle(message.external_id)}
+									onChange={() => toggle(msg.external_id)}
 								/>
 							</div>
 
@@ -157,68 +244,76 @@ export function Message({
 										alt='profilePhoto'
 									/>
 									<div>
-										<p className={styles.name}>{message.author}</p>
-										<span className={styles.meta}>
-											<a href={message.url || '#'} className={styles.link}>
-												{message.source}
+										<div className={styles.nameBlock}>
+											<a href={msg.author_url} className={styles.name}>
+												{msg.author}
 											</a>
-											<p className={styles.date}>{message.published_at}</p>
+											<div className={styles.audience}>
+												<AudienceIcon />
+												{msg.audience || 0}
+											</div>
+										</div>
+
+										<span className={styles.meta}>
+											<a href={msg.url || '#'} className={styles.link}>
+												{msg.source}
+											</a>
+											<p>{msg.message_type}</p>
+											<p className={styles.date}>
+												{msg.published_at
+													? new Date(msg.published_at).toLocaleString('ru-RU', {
+															day: '2-digit',
+															month: '2-digit',
+															year: 'numeric',
+															hour: '2-digit',
+															minute: '2-digit',
+													  })
+													: ''}
+											</p>
 										</span>
 									</div>
 								</div>
 
 								<p className={styles.text}>
 									{isExpanded
-										? text
-										: text.slice(0, TEXT_LIMIT) +
-										  (text.length > TEXT_LIMIT ? '...' : '')}
-
+										? highlightText(text, search)
+										: highlightText(
+												text.slice(0, TEXT_LIMIT) +
+													(text.length > TEXT_LIMIT ? '...' : ''),
+												search
+										  )}
 									{text.length > TEXT_LIMIT && (
 										<span
 											className={styles.more}
-											onClick={() => toggleExpanded(message.external_id)}
+											onClick={() => toggleExpanded(msg.external_id)}
 										>
-											{isExpanded ? (
-												'Свернуть'
-											) : (
-												<>
-													Показать полный текст
-													<svg
-														width='5'
-														height='7'
-														viewBox='0 0 5 7'
-														fill='none'
-														xmlns='http://www.w3.org/2000/svg'
-													>
-														<g clipPath='url(#clip0_76_578)'>
-															<path
-																fillRule='evenodd'
-																clipRule='evenodd'
-																d='M0.165623 6.89749C0.349714 7.03399 0.647442 7.03399 0.831078 6.89749L4.72335 4.00509C4.81048 3.94133 4.87985 3.8646 4.92726 3.77955C4.97467 3.6945 4.99911 3.60292 4.99911 3.51037C4.99911 3.41781 4.97467 3.32623 4.92726 3.24118C4.87985 3.15613 4.81048 3.0794 4.72335 3.01564L0.802896 0.10189C0.71392 0.0367714 0.596092 0.000170588 0.47334 -0.000479472C0.350589 -0.00112953 0.232117 0.0342199 0.141987 0.0983898C0.0973377 0.130079 0.0616125 0.168488 0.0370235 0.21124C0.0124345 0.253992 -0.000494621 0.300175 -0.000963344 0.34693C-0.00143207 0.393685 0.0105696 0.440017 0.0342985 0.483055C0.0580274 0.526094 0.0929783 0.564924 0.136987 0.59714L3.72517 3.26309C3.76877 3.29497 3.80349 3.33335 3.82721 3.37589C3.85094 3.41843 3.86317 3.46424 3.86317 3.51054C3.86317 3.55684 3.85094 3.60265 3.82721 3.64519C3.80349 3.68773 3.76877 3.72611 3.72517 3.75799L0.165623 6.40294C0.122037 6.43479 0.087327 6.47314 0.0636077 6.51565C0.0398885 6.55816 0.0276563 6.60395 0.0276563 6.65021C0.0276563 6.69648 0.0398885 6.74227 0.0636077 6.78478C0.087327 6.82729 0.122037 6.86564 0.165623 6.89749Z'
-																fill='#2D8BFF'
-															/>
-														</g>
-														<defs>
-															<clipPath id='clip0_76_578'>
-																<rect width='5' height='7' fill='white' />
-															</clipPath>
-														</defs>
-													</svg>
-												</>
-											)}
+											{isExpanded ? 'Свернуть' : 'Показать полный текст'}
 										</span>
 									)}
 								</p>
+
+								<div className={styles.statistics}>
+									<div>
+										<RepostIcon /> {msg.reposts || 0}
+									</div>
+									<div>
+										<LikeIcon /> {msg.likes || 0}
+									</div>
+									<div>
+										<EyeIcon /> {msg.views || 0}
+									</div>
+									<div>
+										<CommentIcon /> {msg.comments || 0}
+									</div>
+								</div>
 							</div>
 
-							<div
-								className={`${styles.status} ${styles[message.tone || '']}`}
-							/>
+							<div className={`${styles.status} ${styles[msg.tone || '']}`} />
 
 							<div className={styles.emotion}>
-								{message.tone === 'позитив' && <PositiveSVG />}
-								{message.tone === 'нейтрально' && <NeutralSVG />}
-								{message.tone === 'негатив' && <NegativeSVG />}
+								{msg.tone === 'позитив' && <PositiveSVG />}
+								{msg.tone === 'нейтрально' && <NeutralSVG />}
+								{msg.tone === 'негатив' && <NegativeSVG />}
 							</div>
 						</div>
 					)
@@ -230,90 +325,24 @@ export function Message({
 					disabled={currentPage === 1}
 					onClick={() => setCurrentPage(p => p - 1)}
 				>
-					Назад
+					{'<'}
 				</button>
-
-				<span>
-					{currentPage} / {totalPages}
-				</span>
-
+				{Array.from({ length: totalPages }, (_, i) => (
+					<button
+						key={i + 1}
+						className={currentPage === i + 1 ? styles.active : ''}
+						onClick={() => setCurrentPage(i + 1)}
+					>
+						{i + 1}
+					</button>
+				))}
 				<button
 					disabled={currentPage === totalPages}
 					onClick={() => setCurrentPage(p => p + 1)}
 				>
-					Вперед
+					{'>'}
 				</button>
 			</div>
 		</>
-	)
-}
-
-function PositiveSVG() {
-	return (
-		<svg
-			width='17'
-			height='17'
-			viewBox='0 0 17 17'
-			fill='none'
-			xmlns='http://www.w3.org/2000/svg'
-		>
-			<g clipPath='url(#clip0_130_580)'>
-				<path
-					d='M8.5 0.53125C6.92393 0.53125 5.38326 0.998609 4.0728 1.87423C2.76235 2.74984 1.74097 3.99439 1.13784 5.45049C0.534703 6.90659 0.376895 8.50884 0.684371 10.0546C0.991847 11.6004 1.7508 13.0203 2.86525 14.1348C3.9797 15.2492 5.39959 16.0082 6.94538 16.3156C8.49116 16.6231 10.0934 16.4653 11.5495 15.8622C13.0056 15.259 14.2502 14.2377 15.1258 12.9272C16.0014 11.6167 16.4688 10.0761 16.4688 8.5C16.4681 6.38677 15.6283 4.3603 14.134 2.86602C12.6397 1.37174 10.6132 0.531954 8.5 0.53125ZM11.1563 4.78125C11.4715 4.78125 11.7796 4.87472 12.0417 5.04985C12.3038 5.22497 12.5081 5.47388 12.6287 5.7651C12.7493 6.05632 12.7809 6.37677 12.7194 6.68593C12.6579 6.99508 12.5061 7.27906 12.2832 7.50195C12.0603 7.72484 11.7763 7.87663 11.4672 7.93813C11.158 7.99962 10.8376 7.96806 10.5464 7.84743C10.2551 7.72681 10.0062 7.52253 9.8311 7.26044C9.65598 6.99835 9.5625 6.69021 9.5625 6.375C9.5625 5.95231 9.73042 5.54693 10.0293 5.24805C10.3282 4.94916 10.7336 4.78125 11.1563 4.78125ZM5.84375 4.78125C6.15897 4.78125 6.4671 4.87472 6.72919 5.04985C6.99128 5.22497 7.19556 5.47388 7.31619 5.7651C7.43681 6.05632 7.46838 6.37677 7.40688 6.68593C7.34539 6.99508 7.19359 7.27906 6.97071 7.50195C6.74782 7.72484 6.46384 7.87663 6.15468 7.93813C5.84552 7.99962 5.52507 7.96806 5.23385 7.84743C4.94263 7.72681 4.69372 7.52253 4.5186 7.26044C4.34348 6.99835 4.25 6.69021 4.25 6.375C4.25 5.95231 4.41792 5.54693 4.7168 5.24805C5.01569 4.94916 5.42106 4.78125 5.84375 4.78125ZM14.0781 10.2531C13.7055 11.44 12.9639 12.4771 11.9611 13.2133C10.9583 13.9496 9.7467 14.3466 8.50266 14.3466C7.25862 14.3466 6.04705 13.9496 5.04426 13.2133C4.04147 12.4771 3.2998 11.44 2.92719 10.2531C2.88492 10.1186 2.89784 9.97273 2.96309 9.8477C3.02835 9.72266 3.1406 9.62868 3.27516 9.58641C3.40972 9.54414 3.55555 9.55705 3.68059 9.62231C3.80562 9.68757 3.89961 9.79982 3.94188 9.93438C4.24723 10.9048 4.85413 11.7525 5.67436 12.3542C6.49458 12.956 7.48536 13.2805 8.50266 13.2805C9.51996 13.2805 10.5107 12.956 11.331 12.3542C12.1512 11.7525 12.7581 10.9048 13.0634 9.93438C13.1057 9.79982 13.1997 9.68757 13.3247 9.62231C13.4498 9.55705 13.5956 9.54414 13.7302 9.58641C13.8647 9.62868 13.977 9.72266 14.0422 9.8477C14.1075 9.97273 14.1204 10.1186 14.0781 10.2531Z'
-					fill='#00B84D'
-				/>
-			</g>
-			<defs>
-				<clipPath id='clip0_130_580'>
-					<rect width='17' height='17' fill='white' />
-				</clipPath>
-			</defs>
-		</svg>
-	)
-}
-
-function NeutralSVG() {
-	return (
-		<svg
-			width='17'
-			height='17'
-			viewBox='0 0 17 17'
-			fill='none'
-			xmlns='http://www.w3.org/2000/svg'
-		>
-			<g clipPath='url(#clip0_130_189)'>
-				<path
-					d='M8.5 0.53125C6.92393 0.53125 5.38326 0.998609 4.0728 1.87423C2.76235 2.74984 1.74097 3.99439 1.13784 5.45049C0.534703 6.90659 0.376895 8.50884 0.684371 10.0546C0.991847 11.6004 1.7508 13.0203 2.86525 14.1348C3.9797 15.2492 5.39959 16.0082 6.94538 16.3156C8.49116 16.6231 10.0934 16.4653 11.5495 15.8622C13.0056 15.259 14.2502 14.2377 15.1258 12.9272C16.0014 11.6167 16.4688 10.0761 16.4688 8.5C16.468 6.38677 15.6283 4.3603 14.134 2.86602C12.6397 1.37174 10.6132 0.531954 8.5 0.53125ZM11.1563 4.78125C11.4715 4.78125 11.7796 4.87472 12.0417 5.04985C12.3038 5.22497 12.5081 5.47388 12.6287 5.7651C12.7493 6.05632 12.7809 6.37677 12.7194 6.68593C12.6579 6.99508 12.5061 7.27906 12.2832 7.50195C12.0603 7.72484 11.7763 7.87663 11.4672 7.93813C11.158 7.99962 10.8376 7.96806 10.5464 7.84743C10.2551 7.72681 10.0062 7.52253 9.8311 7.26044C9.65598 6.99835 9.5625 6.69021 9.5625 6.375C9.5625 5.95231 9.73042 5.54693 10.0293 5.24805C10.3282 4.94916 10.7336 4.78125 11.1563 4.78125ZM5.84375 4.78125C6.15897 4.78125 6.4671 4.87472 6.72919 5.04985C6.99128 5.22497 7.19556 5.47388 7.31619 5.7651C7.43681 6.05632 7.46838 6.37677 7.40688 6.68593C7.34539 6.99508 7.1936 7.27906 6.97071 7.50195C6.74782 7.72484 6.46384 7.87663 6.15468 7.93813C5.84552 7.99962 5.52507 7.96806 5.23385 7.84743C4.94263 7.72681 4.69372 7.52253 4.5186 7.26044C4.34348 6.99835 4.25 6.69021 4.25 6.375C4.25 5.95231 4.41792 5.54693 4.7168 5.24805C5.01569 4.94916 5.42106 4.78125 5.84375 4.78125ZM14.0781 10.2531C13.7055 11.44 12.9639 12.4771 11.9611 13.2133C10.9583 13.9496 9.7467 14.3466 8.50266 14.3466C7.25862 14.3466 6.04705 13.9496 5.04426 13.2133C4.04147 12.4771 3.2998 11.44 2.92719 10.2531C2.88492 10.1186 2.89784 9.97273 2.96309 9.8477C3.02835 9.72266 3.1406 9.62868 3.27516 9.58641C3.40972 9.54414 3.55555 9.55705 3.68059 9.62231C3.80562 9.68757 3.89961 9.79982 3.94188 9.93438C4.24723 10.9048 4.85413 11.7525 5.67436 12.3542C6.49458 12.956 7.48536 13.2805 8.50266 13.2805C9.51996 13.2805 10.5107 12.956 11.331 12.3542C12.1512 11.7525 12.7581 10.9048 13.0634 9.93438C13.1057 9.79982 13.1997 9.68757 13.3247 9.62231C13.4498 9.55705 13.5956 9.54414 13.7302 9.58641C13.8647 9.62868 13.977 9.72266 14.0422 9.8477C14.1075 9.97273 14.1204 10.1186 14.0781 10.2531Z'
-					fill='#767575'
-				/>
-			</g>
-			<defs>
-				<clipPath id='clip0_130_189'>
-					<rect width='17' height='17' fill='white' />
-				</clipPath>
-			</defs>
-		</svg>
-	)
-}
-
-function NegativeSVG() {
-	return (
-		<svg
-			width='17'
-			height='17'
-			viewBox='0 0 17 17'
-			fill='none'
-			xmlns='http://www.w3.org/2000/svg'
-		>
-			<rect width='17' height='17' rx='8.5' fill='#E21114' />
-			<circle cx='6.02051' cy='5.1355' r='1.59375' fill='white' />
-			<circle cx='11.333' cy='5.1355' r='1.59375' fill='white' />
-			<path
-				d='M13.8125 13.1042C13.8125 13.1042 12.75 9.56258 8.5 9.56258C4.25 9.56258 3.54167 13.1042 3.54167 13.1042'
-				stroke='white'
-				strokeWidth='1.41667'
-				strokeLinecap='round'
-			/>
-		</svg>
 	)
 }
