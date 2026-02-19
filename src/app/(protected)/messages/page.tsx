@@ -5,7 +5,6 @@ import Calendar from '@/src/components/ui/calendar/Calendar'
 import DeleteBtn from '@/src/components/ui/deleteBtn/DeleteBtn'
 import Filters from '@/src/components/filters/Filters'
 import { useState } from 'react'
-import { DateRange } from 'react-day-picker'
 
 type DateRangeOrSingle =
 	| {

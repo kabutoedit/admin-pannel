@@ -4,7 +4,6 @@ import styles from './Message.module.scss'
 import { useMessagesStore } from '../../store/useMessages.store'
 import { useState, useEffect } from 'react'
 import { api } from '@/src/lib/api'
-import { DateRange } from 'react-day-picker'
 
 export type MessageType = {
 	published_at?: string | null
