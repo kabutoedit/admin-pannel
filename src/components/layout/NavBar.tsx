@@ -1,14 +1,19 @@
 'use client'
 import Link from 'next/link'
 import CompaniesModal from '../ui/CompaniesModal/CompaniesModal'
+import { usePathname } from 'next/navigation'
 import styles from './NavBar.module.scss'
 
 export default function NavBar() {
+	const pathname = usePathname()
 	return (
 		<nav className={styles.nav}>
 			<CompaniesModal />
 			<div className={styles.links}>
-				<Link className={styles.active} href={''}>
+				<Link
+					href='/messages'
+					className={pathname === '/messages' ? styles.active : ''}
+				>
 					<svg
 						width='24'
 						height='24'
@@ -23,7 +28,7 @@ export default function NavBar() {
 					</svg>
 					Сообщения
 				</Link>
-				<Link href={''}>
+				<Link href={'/sources'}>
 					<svg
 						width='24'
 						height='24'
@@ -39,7 +44,7 @@ export default function NavBar() {
 					</svg>
 					Источники
 				</Link>
-				<Link href={''}>
+				<Link href={'tone'}>
 					<svg
 						width='24'
 						height='24'

@@ -43,6 +43,8 @@ type DateRangeOrSingle =
 	| undefined
 
 type MessageProps = {
+	forceSource?: string
+	forceTone?: string
 	search: string
 	refreshTrigger: number
 	selectedRange: DateRangeOrSingle
@@ -51,6 +53,8 @@ type MessageProps = {
 }
 
 export function Message({
+	forceSource,
+	forceTone,
 	search,
 	refreshTrigger,
 	selectedRange,
@@ -72,12 +76,6 @@ export function Message({
 
 	const TEXT_LIMIT = 120
 
-	const toggleExpanded = (id: string) => {
-		setExpandedIds(prev =>
-			prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-		)
-	}
-
 	useEffect(() => {
 		const fetchMessages = async () => {
 			try {
@@ -85,10 +83,15 @@ export function Message({
 				setError('')
 
 				const params: any = { brand_id: brandId }
-				if (search.trim()) params.search = search
+
+				if (search.trim()) params.q = search
+
+				if (forceSource) params.source = forceSource
+				if (forceTone) params.tone = forceTone
+
 				if (selectedRange?.from) {
-					const from = selectedRange.from.toISOString()
-					const to = selectedRange.to
+					params.from = selectedRange.from.toISOString()
+					params.to = selectedRange.to
 						? selectedRange.to.toISOString()
 						: new Date(
 								selectedRange.from.getFullYear(),
@@ -99,8 +102,6 @@ export function Message({
 								59,
 								999
 						  ).toISOString()
-					params.date_from = from
-					params.date_to = to
 				}
 
 				const { data } = await api.get('/api/messages', { params })
@@ -120,6 +121,8 @@ export function Message({
 		search,
 		selectedRange?.from?.toISOString(),
 		selectedRange?.to?.toISOString(),
+		forceSource,
+		forceTone,
 	])
 
 	const processedMessages = useMemo(() => {
