@@ -240,6 +240,28 @@ export function Message({
 		}
 	}, [selectedMessage])
 
+	const handleChangeTone = async (
+		externalId: string,
+		currentTone: MessageType['tone']
+	) => {
+		const tones: MessageType['tone'][] = ['позитив', 'нейтрально', 'негатив']
+		const currentIndex = tones.indexOf(currentTone || 'нейтрально')
+		const nextTone = tones[(currentIndex + 1) % tones.length]
+
+		try {
+			setMessages(prev =>
+				prev.map(msg =>
+					msg.external_id === externalId ? { ...msg, tone: nextTone } : msg
+				)
+			)
+
+			await api.patch(`/api/messages/${externalId}`, { tone: nextTone })
+		} catch (err) {
+			console.error('Ошибка при смене тональности', err)
+			setError('Не удалось сохранить изменение')
+		}
+	}
+
 	return (
 		<>
 			{error && <p>{error}</p>}
@@ -336,10 +358,16 @@ export function Message({
 
 							<div className={`${styles.status} ${styles[msg.tone || '']}`} />
 
-							<div className={styles.emotion}>
+							<div
+								className={styles.emotion}
+								onClick={() => handleChangeTone(msg.external_id, msg.tone)}
+								style={{ cursor: 'pointer' }}
+								title='Нажмите, чтобы изменить тональность'
+							>
 								{msg.tone === 'позитив' && <PositiveSVG />}
 								{msg.tone === 'нейтрально' && <NeutralSVG />}
 								{msg.tone === 'негатив' && <NegativeSVG />}
+								{!msg.tone && <NeutralSVG />}
 							</div>
 						</div>
 					)
